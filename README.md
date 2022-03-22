@@ -1,10 +1,10 @@
 # Nitrox
 
-  Website: https://cryptonitro.io
-  Telegram: https://t.me/CryptoNitroGlobal
-  Twitter: https://twitter.com/CryptoNitrox
-  Whitepaper: https://whitepaper.cryptonitro.io
-  Docs: https://docs.cryptonitro.io
+  # Website: https://cryptonitro.io
+  # Telegram: https://t.me/CryptoNitroGlobal
+  # Twitter: https://twitter.com/CryptoNitrox
+  # Whitepaper: https://whitepaper.cryptonitro.io
+  # Docs: https://docs.cryptonitro.io
 
   Features:
 
