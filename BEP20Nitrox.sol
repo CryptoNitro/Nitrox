@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at BscScan.com on 2022-03-24
+*/
+
 // SPDX-License-Identifier: MIT
 
 /** 
@@ -13,37 +17,36 @@
    - 3% Dev Fee
    - 2% Burn
    - 1% Reflection
-   - 2% Play To Earn
+   - 0% Play To Earn
     
   - Buy Fees: 6%
    - 3% Liquidity Fee
    - 1% Burn
    - 1% Dev Fee
-   - 1% Reflection
-   - 1% Play To Earn
+   - 1% Reflection*
+   - 0% Play To Earn
 
 Anti Bot system: 45 seconds cooldown in every transaction
 Anti Whale: 1% transaction limit
-When supplies reach 400 millions, play to earn fee will be activated and burn fee deactivated
 
-                         __---~~~~--__                      __--~~~~---__
-                        `\---~~~~~~~~\\                    //~~~~~~~~---/'  
-                          \/~~~~~~~~~\||                  ||/~~~~~~~~~\/ 
-                                      `\\                //'
-                                        `\\            //'
-                                          ||          ||      
-                                ______--~~~~~~~~~~~~~~~~~~--______              
-                            ___ // _-~                        ~-_ \\ ___  
-                          `\__)\/~                              ~\/(__/'          
-                            _--`-___                            ___-'--_        
-                          /~     `\ ~~~~~~~~------------~~~~~~~~ /'     ~\        
-                        /|        `\         ________         /'        |\     
-                        | `\   ______`\_      \------/      _/'______   /' |          
-                        |   `\_~-_____\ ~-________________-~ /_____-~_/'   |  
-                        `.     ~-__________________________________-~     .'       
-                        `.      [_______/------|~~|------\_______]      .'
-                         `\--___((____)(________\/________)(____))___--/'           
-                          |>>>>>>||       [CRYPTO NITRO]       ||<<<<<<|
+  __---~~~~--__                      __--~~~~---__
+`\---~~~~~~~~\\                    //~~~~~~~~---/'  
+  \/~~~~~~~~~\||                  ||/~~~~~~~~~\/ 
+              `\\                //'
+                `\\            //'
+                  ||          ||      
+        ______--~~~~~~~~~~~~~~~~~~--______              
+    ___ // _-~                        ~-_ \\ ___  
+  `\__)\/~                              ~\/(__/'          
+    _--`-___                            ___-'--_        
+  /~     `\ ~~~~~~~~------------~~~~~~~~ /'     ~\        
+/|        `\         ________         /'        |\     
+| `\   ______`\_      \------/      _/'______   /' |          
+|   `\_~-_____\ ~-________________-~ /_____-~_/'   |  
+`.     ~-__________________________________-~     .'       
+`.      [_______/------|~~|------\_______]      .'
+  `\--___((____)(________\/________)(____))___--/'           
+  |>>>>>>||       [CRYPTO NITRO]       ||<<<<<<|
 */
 
 pragma solidity ^0.8.13;
@@ -713,11 +716,11 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
     ) external;
 }
 
-contract BEP20Nitrox is Context, IBEP20, Ownable {
+contract NitroxToken is Context, IBEP20, Ownable {
   using SafeMath for uint256;
   using Address for address;
 
-  string private _name = "Nitrox";
+  string private _name = "Nitrox Token";
   string private _symbol = "NOX";
   uint8 private _decimals = 18;
 
@@ -732,7 +735,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   mapping (address => uint) private _cooldownTimer;
   
   uint256 private constant MAX = ~uint256(0);
-  uint256 private _tTotal = 1200000000 * 10**18;
+  uint256 private _tTotal = 1290000000 * 10**18;
   uint256 private _rTotal = (MAX - (MAX % _tTotal));
   uint256 private _tFeeTotal;
 
@@ -757,15 +760,12 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   uint256 private _playToEarnFee;
   uint256 private _liquidityFee;
   
-  // Sell Taxes
   struct SellFees{
     uint256 _burnSellFee;
     uint256 _devSellFee;
     uint256 _playToEarnSellFee;
     uint256 _liquiditySellFee;
   }
-    
-  // Buy Taxes
   struct BuyFees{
     uint256 _burnBuyFee;
     uint256 _devBuyFee;
@@ -776,10 +776,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   BuyFees public buyFees;
   SellFees public sellFees;
 
-  // Reflection Taxes
-  uint256 public _reflectionFee = 1;
-  
-  // Sell and Buy Totals
+  uint256 public _reflectionFee;
   uint256 private _taxFee = _reflectionFee + _devFee + _playToEarnFee + _burnFee;
 
   uint256 private _previousTaxFee = _taxFee;
@@ -789,12 +786,12 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   uint256 private _previousLiquidityFee = _liquidityFee; 
   uint256 private _previousReflectionFee = _reflectionFee;
 
-  uint256 private totBuyFee;
-  uint256 private totSellFee;
+  uint256 public totBuyFee;
+  uint256 public totSellFee;
 
   // Anti Whale
-  uint256 public _maxTxAmount = 1200000 * 10**18; //0.5%
-  uint256 private numTokensSellToAddToLiquidity = 120000 * 10**18; // 0.01%
+  uint256 public _maxTxAmount = 600000 * 10**18;
+  uint256 private numTokensSellToAddToLiquidity = 25000 * 10**18;
 
   event MinTokensBeforeSwapUpdated(uint256 minTokensBeforeSwap);
   event SwapAndLiquifyEnabledUpdated(bool enabled);
@@ -820,28 +817,15 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     devAddress = initialDevAddress;
     playToEarnAddress = initialPlayToEarnAddress;
     
-    // PancakeSwap TestNet router: 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
-    // PancakeSwap MainNet router: 0x10ED43C718714eb63d5aA57B78B54704E256024E
     IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x10ED43C718714eb63d5aA57B78B54704E256024E);
     uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
         .createPair(address(this), _uniswapV2Router.WETH());
     uniswapV2Router = _uniswapV2Router;
 
-    // Exclude owner, devAddress and this contract from fee
     _isExcludedFromFee[owner()] = true;
     _isExcludedFromFee[address(this)] = true;
-    _isExcludedFromFee[devAddress] = true;
+    _isExcluded[devAddress] = true;
     _isExcluded[playToEarnAddress] = true;
-
-    buyFees._burnBuyFee = 1;
-    buyFees._devBuyFee = 1;
-    buyFees._playToEarnBuyFee = 0;
-    buyFees._liquidityBuyFee = 3;
-
-    sellFees._burnSellFee = 2;
-    sellFees._devSellFee = 3;
-    sellFees._playToEarnSellFee = 0;
-    sellFees._liquiditySellFee = 0;
 
     emit Transfer(address(0), msg.sender, _tTotal);
   }
@@ -876,7 +860,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     return true;
   }
 
-  function allowance(address owner, address spender) external view override returns (uint256) {
+  function allowance(address owner, address spender) public view override returns (uint256) {
     return _allowances[owner][spender];
   }
 
@@ -911,8 +895,11 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     }
   }
 
-  function totalFees() public view returns (uint256) {
-    return _tFeeTotal;
+  function burnFrom(address account, uint256 amount) external virtual { 
+    uint256 currentAllowance = allowance(account, _msgSender());
+    require(currentAllowance >= amount, "ERC20: burn amount exceeds allowance");
+    _approve(account, _msgSender(), currentAllowance - amount);
+    _burn(account, amount);
   }
 
   function _burn(address account, uint256 amount) internal {
@@ -950,17 +937,15 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   function _devTakeFee(address account, uint256 amount) internal {
     _rOwned[account] = _rOwned[account].sub(amount, "BEP20: donation amount exceeds balance");
     uint256 rAmount = amount.mul(_getRate());
-    
     _rOwned[devAddress] = _rOwned[devAddress].add(rAmount);
     _tOwned[devAddress] = _tOwned[devAddress].add(amount);
 
     emit Transfer(account, devAddress, amount);
   }
-
+  
   function _playToEarnTakeFee(address account, uint256 amount) internal {
     _rOwned[account] = _rOwned[account].sub(amount, "BEP20: donation amount exceeds balance");
     uint256 rAmount = amount.mul(_getRate());
-    
     _rOwned[playToEarnAddress] = _rOwned[playToEarnAddress].add(rAmount);
     _tOwned[playToEarnAddress] = _tOwned[playToEarnAddress].add(amount);
 
@@ -994,7 +979,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   }
 
   function excludeFromReward(address account) public onlyOwner() {
-   // require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Uniswap router.');
+    require(account != 0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D, 'We can not exclude Uniswap router.');
     require(!_isExcluded[account], "Account is already excluded");
     if(_rOwned[account] > 0) {
         _tOwned[account] = tokenFromReflection(_rOwned[account]);
@@ -1064,7 +1049,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     _isExcludedFromFee[account] = false;
   }
 
-  function setTaxBuy(uint256 Liquidity, uint256 devFee, uint256 PlayToEarn, uint256 Burn) external onlyOwner {
+  function setTaxBuy(uint256 Liquidity, uint256 devFee, uint256 PlayToEarn, uint256 Burn) public onlyOwner {
     buyFees._liquidityBuyFee = Liquidity;
     buyFees._devBuyFee = devFee;
     buyFees._playToEarnBuyFee = PlayToEarn;
@@ -1074,7 +1059,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     require(totBuyFee <= 20, "Max buy fee is 20%"); 
   }
 
-  function setTaxSell(uint256 Liquidity, uint256 devFee, uint256 PlayToEarn, uint256 Burn) external onlyOwner {
+  function setTaxSell(uint256 Liquidity, uint256 devFee, uint256 PlayToEarn, uint256 Burn) public onlyOwner {
     sellFees._liquiditySellFee = Liquidity;
     sellFees._devSellFee = devFee;
     sellFees._playToEarnSellFee = PlayToEarn;
@@ -1083,11 +1068,16 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     totSellFee = devFee + PlayToEarn + Burn + Liquidity;
     require(totSellFee <= 35, "Max sell fee is 35%");
   }
+
+  function setReflectionFee(uint256 Reflection) public onlyOwner {
+    _reflectionFee = Reflection;
+    require(Reflection <= 5, "Max reflection fee is 5%");
+  }
     
   function setMaxTxPercent(uint256 maxTxPercent) external onlyOwner() {
     _maxTxAmount = _tTotal.mul(maxTxPercent).div(
-      10**2
-    );
+      10**2);
+    require(maxTxPercent > 0);
   }
 
   function setSwapAndLiquifyEnabled(bool _enabled) public onlyOwner {
@@ -1095,7 +1085,6 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     emit SwapAndLiquifyEnabledUpdated(_enabled);
   }
   
-  // To recieve ETH from pancakeswapV2Router when swaping
   receive() external payable {}
 
   function _reflectFee(uint256 rFee, uint256 tFee) private {
@@ -1169,11 +1158,24 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     );
   }
 
-  function removeFromBlackList(address account) external onlyOwner {
+ function removeFromBlackList(address account) external onlyOwner {
     _isBlacklisted[account] = false;
   }
 
+ function setMinTokensBeforeSwap(uint256 minTokensBeforeSwap_) public onlyOwner {
+    require(minTokensBeforeSwap_ < _tTotal, "minTokensBeforeSwap must be higher than current supply.");
+    numTokensSellToAddToLiquidity = minTokensBeforeSwap_;
+    emit MinTokensBeforeSwapUpdated(minTokensBeforeSwap_);
+  }
+
+  function minTokensBeforeSwap() external view virtual returns (uint256) {
+    return numTokensSellToAddToLiquidity;
+  }
+
   function afterPreSale() external onlyOwner {
+    setTaxBuy(3, 1, 0, 1);
+    setTaxSell(9, 3, 0, 2);
+    setReflectionFee(1);
     isTradingEnable = true;
   }
 
@@ -1210,7 +1212,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     _playToEarnFee = buyFees._playToEarnBuyFee;
     _burnFee = buyFees._burnBuyFee;
     _liquidityFee = buyFees._liquidityBuyFee;
-    
+
     _taxFee = _reflectionFee + _devFee + _playToEarnFee + _burnFee;
   }
 
@@ -1220,10 +1222,10 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     _playToEarnFee = sellFees._playToEarnSellFee;
     _burnFee = sellFees._burnSellFee;
     _liquidityFee = sellFees._liquiditySellFee;
-    
+
     _taxFee = _reflectionFee + _devFee + _playToEarnFee + _burnFee;
   }
-
+   
   function restoreAllFee() private {
     _taxFee = _previousTaxFee;
     _liquidityFee = _previousLiquidityFee;
@@ -1238,13 +1240,16 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
   }
 
   function _transfer(address from, address to, uint256 amount) private {
-    require(isTradingEnable == true,"Trading is Off");
     require(from != address(0), "BEP20: transfer from the zero address");
     require(to != address(0), "BEP20: transfer to the zero address");
     require(amount > 0, "Transfer amount must be greater than zero");
     require(antiBot(from), "Anti Bot! Please slow down");
-    //add the require statement into the transfer function   
     require(!_isBlacklisted[from] && !_isBlacklisted[to], "This address is blacklisted");
+
+    if(to == uniswapV2Pair) {
+      require(isTradingEnable == true, "You are not allowed to add liquidity before presale is ended");
+    }
+
     if(from != owner() && to != owner())
       require(amount <= _maxTxAmount, "Your transfer amount exceeds transaction limit.");
 
@@ -1256,19 +1261,12 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     }
     
     bool overMinTokenBalance = contractTokenBalance >= numTokensSellToAddToLiquidity;
-    if (
-      overMinTokenBalance &&
-      !inSwapAndLiquify &&
-      from != uniswapV2Pair &&
-      swapAndLiquifyEnabled
-    ) {
+    if ( overMinTokenBalance && !inSwapAndLiquify && from != uniswapV2Pair && swapAndLiquifyEnabled ) {
       contractTokenBalance = numTokensSellToAddToLiquidity;
-      // Add liquidity
       swapAndLiquify(contractTokenBalance);
     }
     bool takeFee = true;
     
-    // If any account belongs to _isExcludedFromFee account then remove the fee
     if(_isExcludedFromFee[from] || _isExcludedFromFee[to]){
       takeFee = false;
     }else{
@@ -1303,7 +1301,7 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
 
     uniswapV2Router.swapExactTokensForETHSupportingFeeOnTransferTokens(
       tokenAmount,
-      0, // accept any amount of ETH
+      0, 
       path,
       address(this),
       block.timestamp
@@ -1316,8 +1314,8 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     uniswapV2Router.addLiquidityETH{value: ethAmount}(
       address(this),
       tokenAmount,
-      0, // slippage is unavoidable
-      0, // slippage is unavoidable
+      0, 
+      0, 
       owner(),
       block.timestamp
     );
@@ -1351,19 +1349,15 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     if(_burnFee > 0){
       _burn(sender, burnFee);
     }
-    
     if(_devFee > 0){
       _devTakeFee(sender, devFee);
     }
-    
     if(_playToEarnFee > 0){
       _playToEarnTakeFee(sender, playToEarnFee);
     }
-    
     if(_liquidityFee > 0){
       _takeLiquidity(tLiquidity);
     }
-
     if(_reflectionFee > 0){
       _reflectFee(rFee, reflectionFee);
     }
@@ -1382,19 +1376,15 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     if(_burnFee > 0){
       _burn(sender, burnFee);
     }
-    
     if(_devFee > 0){
       _devTakeFee(sender, devFee);
     }
-    
     if(_playToEarnFee > 0){
       _playToEarnTakeFee(sender, playToEarnFee);
     }
-    
     if(_liquidityFee > 0){
       _takeLiquidity(tLiquidity);
     }
-
     if(_reflectionFee > 0){
       _reflectFee(rFee, reflectionFee);
     }
@@ -1409,27 +1399,23 @@ contract BEP20Nitrox is Context, IBEP20, Ownable {
     _rOwned[recipient] = _rOwned[recipient].add(rTransferAmount);   
 
     (uint256 devFee, uint256 playToEarnFee, uint256 burnFee, uint256 reflectionFee) = _getTaxBreakdown(tAmount);
-    
+   
     if(_burnFee > 0){
       _burn(sender, burnFee);
     }
-    
     if(_devFee > 0){
       _devTakeFee(sender, devFee);
     }
-    
     if(_playToEarnFee > 0){
       _playToEarnTakeFee(sender, playToEarnFee);
     }
-    
     if(_liquidityFee > 0){
       _takeLiquidity(tLiquidity);
     }
-
     if(_reflectionFee > 0){
       _reflectFee(rFee, reflectionFee);
     }
-    
+           
     emit Transfer(sender, recipient, tTransferAmount);
   }
 }
