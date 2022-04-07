@@ -6,19 +6,14 @@
   Whitepaper: https://whitepaper.cryptonitro.io</br>
   Docs: https://docs.cryptonitro.io</br>
  
- ## Sell Fees: 6%
-   - 3% Dev Fee
-   - 2% Burn
-   - 1% Reflection
-   - 0% Play To Earn
- 
- ## Buy Fees: 6%
-   - 3% Liquidity Fee
-   - 1% Burn
+ ## Fees: 6%
+   - 2% Liquidity Fee
    - 1% Dev Fee
+   - 1% Burn
    - 1% Reflection
+   - 1% BuybackFee
    - 0% Play To Earn
  
 Anti Bot system: 45 seconds cooldown in every transaction</br>
 Anti Whale: 1% transaction limit</br>
-When supply reaches 400 millions, play to earn fee will be activated and burn fee deactivated</br>
+At the game launch, Play To Earn Fee will be set to 1%.
